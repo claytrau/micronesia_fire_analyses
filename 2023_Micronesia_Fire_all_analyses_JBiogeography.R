@@ -28,9 +28,8 @@ writeLines(unlist(pkglist),pkgcitations )
 
 ###~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #Land covers - LANDFIRE  US Insular Areas "Existing Vegetation Type"
+#https://landfire.gov/insular_areas.php
 ###~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-##UPDATED LAND COVER 2016!!!
 
 Yaplc<-raster("/Users/clayt/Temp_Data/Micronesia/2016_landfire/LF2016_Micronesia_200_IA/LF2016_FSM_YAP_200_IA/LF2016_EVT_200_YAP/Tif/LY16_EVT_200.tif")
 Palaulc<-raster("/Users/clayt/Temp_Data/Micronesia/2016_landfire/LF2016_PW_200_IA/LF2016_EVT_200_PW/Tif/LP16_EVT_200.tif")
@@ -221,6 +220,7 @@ exposurevals
 
 ###~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #Island-scale statistics for plotting land cover, geography, climate, fire correlations 
+#Data based on Table 1 in associated publication
 ###~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 #Island scale statistics [include both landfire 2010 (lf10) and landfire 2016 (lf2016) percent land covers]
@@ -357,6 +357,7 @@ ggsave("/Users/clayt/Documents/Manuscripts/2021_Micronesia_fire/lightning densit
 
 ###~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ##SOILS ANALYSES - using National Resources Conservation Service Soils Maps
+#https://gdg.sc.egov.usda.gov/
 ###~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ##***Note - models below may produce slightly different results due to random sampling
@@ -804,10 +805,15 @@ print(chi.sqtest)
 #X-squared = 80.86, df = 5, p-value = 0.0000000000000005546
 
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~``
-##  FIRE-LAND COVER INTERSECTIONS - #Attribute pixels burned per land cover type per island
+##  FIRES AND LAND COVER INTERSECTIONS - #Attribute pixels burned per land cover type per island
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~``
 
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~``
 #Spatial fire perimeters - USFS Data 
+#https://www.fs.usda.gov/rds/archive/catalog/RDS-2023-0012 - Guam, CNMI, Yap
+#https://www.fs.usda.gov/rds/archive/catalog/RDS-2022-0039 - Babeldaob Palau
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~``
+
 
 allfires<-st_read("/Users/clayt/Temp_Data/Micronesia/", "2021_2011_USFS_Micronesia_fire_perimeters_all_simple.shp")
 allfires<-as(allfires, "Spatial")
@@ -960,7 +966,6 @@ reburn(tinianfirecount)
 
 
 #Maps of land cover, with reburn frequency plotted for islands with fire records
-#MULTIPLE CLASSES PER ISLAND
 
 #color scheme
 simplecolorscheme

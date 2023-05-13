@@ -28,8 +28,9 @@ writeLines(unlist(pkglist),pkgcitations )
 
 ###~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #Land covers - LANDFIRE  US Insular Areas "Existing Vegetation Type"
-#https://landfire.gov/insular_areas.php
 ###~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+##UPDATED LAND COVER 2016!!!
 
 Yaplc<-raster("/Users/clayt/Temp_Data/Micronesia/2016_landfire/LF2016_Micronesia_200_IA/LF2016_FSM_YAP_200_IA/LF2016_EVT_200_YAP/Tif/LY16_EVT_200.tif")
 Palaulc<-raster("/Users/clayt/Temp_Data/Micronesia/2016_landfire/LF2016_PW_200_IA/LF2016_EVT_200_PW/Tif/LP16_EVT_200.tif")
@@ -220,7 +221,6 @@ exposurevals
 
 ###~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #Island-scale statistics for plotting land cover, geography, climate, fire correlations 
-#Data based on Table 1 in associated publication
 ###~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 #Island scale statistics [include both landfire 2010 (lf10) and landfire 2016 (lf2016) percent land covers]
@@ -357,7 +357,6 @@ ggsave("/Users/clayt/Documents/Manuscripts/2021_Micronesia_fire/lightning densit
 
 ###~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ##SOILS ANALYSES - using National Resources Conservation Service Soils Maps
-#https://gdg.sc.egov.usda.gov/
 ###~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ##***Note - models below may produce slightly different results due to random sampling
@@ -804,19 +803,89 @@ print(chi.sqtest)
 #data:  soilordertab
 #X-squared = 80.86, df = 5, p-value = 0.0000000000000005546
 
-##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~``
-##  FIRES AND LAND COVER INTERSECTIONS - #Attribute pixels burned per land cover type per island
-##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~``
 
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~``
+#.  FIRE ANALYSES
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~``
+
 #Spatial fire perimeters - USFS Data 
-#https://www.fs.usda.gov/rds/archive/catalog/RDS-2023-0012 - Guam, CNMI, Yap
-#https://www.fs.usda.gov/rds/archive/catalog/RDS-2022-0039 - Babeldaob Palau
-##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~``
 
+#Guam, CNMI, Yap: 
+#Dendy, Julian T.; Giardina, Christian P.; Cordell, Susan; Uowolo, Amanda L. 2023. Western Micronesia wildfires (2016-2021). Fort Collins, CO: Forest Service Research Data Archive. https://doi.org/10.2737/RDS-2023-0012
+#   https://www.fs.usda.gov/rds/archive/catalog/RDS-2023-0012 
+
+#Palau: 
+#Dendy, Julian T.; Mesubed, Dino; Giardina, Christian P.; Cordell, Susan; Holm, Tarita; Uowolo, Amanda L. 2022. Babeldaob Island wildfires (2012-2021). Fort Collins, CO: Forest Service Research Data Archive. https://doi.org/10.2737/RDS-2022-0039
+#   https://www.fs.usda.gov/rds/archive/catalog/RDS-2022-0039
 
 allfires<-st_read("/Users/clayt/Temp_Data/Micronesia/", "2021_2011_USFS_Micronesia_fire_perimeters_all_simple.shp")
 allfires<-as(allfires, "Spatial")
+
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~``
+###BASIC SUMMARIES
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~``
+
+#Fire size Distributions 
+library(terra)
+micronesiafires<-vect(allfires)
+
+micronesiafires$hectares<-expanse(micronesiafires)/10000
+head(micronesiafires)
+range(micronesiafires$hectares)
+
+ggplot(as.data.frame(micronesiafires), aes(y=hectares, x=island))+
+  geom_boxplot()+
+  scale_x_discrete("Island group")+
+  scale_y_continuous("Fire size (ha)", trans = "log10",breaks = c(0,1,10,100,500))+
+  theme_bw()
+
+ggsave("/Users/clayt/Documents/Manuscripts/2021_Micronesia_fire/micronesia_fire_size_distributions.pdf", height=4, width=4)
+
+
+#Percent area burned and fire count vs Hawaii and US:
+
+#Pacific data from USFS spatial data above and from Guam and Yap Forestry
+#data available as .csv file at https://github.com/claytrau/micronesia_fire_analyses
+
+pacific<-read.csv("/Users/clayt/Temp_Data/Micronesia/2021_Micronesia_annual_percent_area_burned.csv")
+
+#Western US perdata from NAtional Interagency Fire Center: www.nifc.gov
+#Hawaii Data from spatial fire perimeter data available online at www.PacificFireExchange.org
+#data for analyses available as .csv file at https://github.com/claytrau/micronesia_fire_analyses
+
+westUS_Hawaii<-read.csv("/Users/clayt/Temp_Data/Micronesia/2021_WesternUS_Hawaii_annual_percent_area_burned.csv")
+allpercburned<-rbind(westUS_Hawaii, pacific[,c(1:3)])
+
+#jitter plot of percent area burned
+
+allpercburned$region<-factor(allpercburned$region, levels = c("Western US", "Hawaii", "Palau", "Saipan", "Tinian", "Rota", "Guam", "Yap"), ordered=T)
+
+ggplot()+
+  geom_jitter(data=allpercburned, aes(y=perc_burned, x=region), position = position_jitter(width = 0.1))+
+  xlab("")+
+  scale_y_continuous("Percent of land area burned annually", limits=c(0,10))+
+  theme_bw()
+ggsave("/Users/clayt/Desktop/Pacific Hawaii western US percent area burned raw values no years.pdf", 
+       width=6, height=4)
+
+#jitter plot of fire number per island
+
+pacific$region<-factor(pacific$region, levels = c("Palau", "Saipan", "Tinian", "Rota", "Guam", "Yap"), ordered=T)
+
+ggplot()+
+  geom_jitter(data=pacific, aes(y=fire_number, x=region), position = position_jitter(width = 0.1))+
+  xlab("")+
+  scale_y_continuous("Count of fires per year", limits=c(0,2000))+
+  theme_bw()
+
+ggsave("/Users/clayt/Desktop/Pacific count of fires raw values no years.pdf", 
+       width=4, height=4)
+
+
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~``
+##  FIRE-LAND COVER INTERSECTIONS - #Attribute pixels burned per land cover type per island
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~``
+
 
 burnedlc<-data.frame(zone=as.numeric(), burned_pix_cnt=as.numeric(), year=as.numeric(), pixels_per_class=as.numeric(), tot_pix_burned=as.numeric(), class=as.numeric(), island=as.numeric())
 
@@ -966,6 +1035,7 @@ reburn(tinianfirecount)
 
 
 #Maps of land cover, with reburn frequency plotted for islands with fire records
+#MULTIPLE CLASSES PER ISLAND
 
 #color scheme
 simplecolorscheme
